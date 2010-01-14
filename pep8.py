@@ -936,6 +936,9 @@ class Checker:
         code = text[:4]
         options.counters[code] = options.counters.get(code, 0) + 1
         options.messages[code] = text[5:]
+        if ignore_code(code):
+            return
+        options.exit_code |= 1
         if options.quiet:
             return
         if options.testsuite:
@@ -944,8 +947,6 @@ class Checker:
                 return  # Don't care about other errors or warnings
             if 'not' not in basename:
                 return  # Don't print the expected error message
-        if ignore_code(code):
-            return
         if options.counters[code] == 1 or options.repeat:
             message("%s:%s:%d: %s" %
                     (self.filename, line_number, offset + 1, text))
@@ -1210,6 +1211,7 @@ def process_options(arglist=None):
     options.logical_checks = find_checks('logical_line')
     options.counters = {}
     options.messages = {}
+    options.exit_code = 0
     return options, args
 
 
@@ -1235,6 +1237,7 @@ def _main():
         print_benchmark(elapsed)
     if options.count:
         print(get_count())
+    sys.exit(options.exit_code)
 
 
 if __name__ == '__main__':
